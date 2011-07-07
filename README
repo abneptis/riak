@@ -1,1 +1,21 @@
-A new riak binding set.
+#	github.com/abneptis/riak
+
+	Abneptis' riak is a from-scratch implementation of the riak client protocol.
+
+## Usage
+
+	For now, please see the tests
+
+## Testing
+
+	Testing is fairly thorough, though patches and additional tests are always
+welcome.
+
+
+## Alternatives
+
+	GoRiak: https://code.google.com/p/goriak/ - The original go riak implementation
+
+## License
+
+	TBD
