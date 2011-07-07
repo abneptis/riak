@@ -100,7 +100,7 @@ func GetBucket(c Client, name string, getprops, getkeys bool, cc *http.ClientCon
 			err = json.NewDecoder(r.Body).Decode(&br)
 			return
 		},
-		-1: Failf("Server refused enumeration"),
+		-1: failf("Server refused enumeration"),
 	})
 	return
 }
@@ -121,13 +121,13 @@ func createBucketRequest(c Client, name string, props map[string]interface{}) (r
 	return
 }
 
-func Failf(s string, v ...interface{}) func(*http.Response) os.Error {
+func failf(s string, v ...interface{}) func(*http.Response) os.Error {
 	return func(*http.Response) os.Error {
 		return os.NewError(fmt.Sprintf(s, v...))
 	}
 }
 
-func DebugFailf(out io.Writer, body bool, s string, v ...interface{}) func(*http.Response) os.Error {
+func debugFailf(out io.Writer, body bool, s string, v ...interface{}) func(*http.Response) os.Error {
 	return func(in *http.Response) os.Error {
 		ob, _ := http.DumpResponse(in, body)
 		out.Write(ob)
@@ -135,7 +135,7 @@ func DebugFailf(out io.Writer, body bool, s string, v ...interface{}) func(*http
 	}
 }
 
-func Okf(*http.Response) os.Error {
+func okf(*http.Response) os.Error {
 	return nil
 }
 
@@ -150,7 +150,7 @@ func CreateBucket(c Client, name string, props map[string]interface{}, cc *http.
 	if err == nil {
 		err = dispatchRequest(cc, req, map[int]func(*http.Response) os.Error{
 			204: func(*http.Response) os.Error { return nil },
-			-1:  Failf("Server refused creation"),
+			-1:  failf("Server refused creation"),
 		})
 	}
 	return
@@ -214,8 +214,8 @@ func Ping(c Client, cc *http.ClientConn) (err os.Error) {
 	// note there's no /riak/ on a PING
 	req := pingRequest(c)
 	err = dispatchRequest(cc, req, map[int]func(*http.Response) os.Error{
-		200: Okf,
-		-1:  Failf("Unexpected response from ping"),
+		200: okf,
+		-1:  failf("Unexpected response from ping"),
 	})
 	return
 }
@@ -242,7 +242,7 @@ func ListBuckets(c Client, cc *http.ClientConn) (names []string, err os.Error) {
 			}
 			return
 		},
-		-1: Failf("ListBuckets failed"),
+		-1: failf("ListBuckets failed"),
 	})
 	return
 }
@@ -257,7 +257,7 @@ func getItemRequest(c Client, bucket, key string, hdrs http.Header, parms http.V
 func GetItem(c Client, bucket, key string, hdrs http.Header, parms http.Values, cc *http.ClientConn) (resp *http.Response, err os.Error) {
 	req := getItemRequest(c, bucket, key, hdrs, parms)
 	err = dispatchRequest(cc, req, map[int]func(*http.Response) os.Error{
-		-1:  DebugFailf(os.Stdout, true, "GetItem failed" + req.URL.String()),
+		-1:  debugFailf(os.Stdout, true, "GetItem failed"+req.URL.String()),
 		404: func(*http.Response) os.Error { return ErrUnknownKey },
 		200: func(rresp *http.Response) (err os.Error) {
 			// This doesn't actually happen unless someone else has resolved the item for us, but we'll
@@ -284,7 +284,7 @@ func getMultiItemRequest(c Client, bucket, key string, hdrs http.Header, parms h
 func GetMultiItem(c Client, bucket, key string, hdrs http.Header, parms http.Values, respch chan<- *http.Response, cc *http.ClientConn) (err os.Error) {
 	req := getMultiItemRequest(c, bucket, key, hdrs, parms)
 	err = dispatchRequest(cc, req, map[int]func(*http.Response) os.Error{
-		-1:  DebugFailf(os.Stdout, true, "GetMultiItem failed"),
+		-1:  debugFailf(os.Stdout, true, "GetMultiItem failed"),
 		400: func(*http.Response) os.Error { return ErrBadRequest },
 		404: func(*http.Response) os.Error { return ErrUnknownKey },
 		406: func(*http.Response) os.Error { return ErrUnacceptable },
@@ -298,7 +298,7 @@ func GetMultiItem(c Client, bucket, key string, hdrs http.Header, parms http.Val
 		300: func(resp *http.Response) (err os.Error) {
 			mtype, mparms := mime.ParseMediaType(resp.Header.Get("Content-Type"))
 			if mtype != "multipart/mixed" {
-				return DebugFailf(os.Stdout, true, "Server gave us a 300, but not a multipart/mixed message\t"+mtype)(resp)
+				return debugFailf(os.Stdout, true, "Server gave us a 300, but not a multipart/mixed message\t"+mtype)(resp)
 			}
 			if err == nil && mparms["boundary"] == "" {
 				err = os.NewError("No boundry name found in content-type")
@@ -347,9 +347,9 @@ func putItemRequest(c Client, bucket, key string, body []byte, hdrs http.Header,
 func PutItem(c Client, bucket, key string, body []byte, hdrs http.Header, parms http.Values, cc *http.ClientConn) (err os.Error) {
 	req := putItemRequest(c, bucket, key, body, hdrs, parms)
 	err = dispatchRequest(cc, req, map[int]func(*http.Response) os.Error{
-		-1:  DebugFailf(os.Stdout, true, "PutItem	failed:" + req.URL.String()),
+		-1: debugFailf(os.Stdout, true, "PutItem	failed:"+req.URL.String()),
 		412: func(*http.Response) os.Error { return ErrPreconditionFailed },
-		204: Okf,
+		204: okf,
 	})
 	return
 }
@@ -363,9 +363,9 @@ func deleteItemRequest(c Client, bucket, key string, parms http.Values) (req *ht
 func DeleteItem(c Client, bucket, key string, parms http.Values, cc *http.ClientConn) (err os.Error) {
 	req := deleteItemRequest(c, bucket, key, parms)
 	err = dispatchRequest(cc, req, map[int]func(*http.Response) os.Error{
-		-1:  DebugFailf(os.Stdout, true, "DeleteItem failed"),
+		-1:  debugFailf(os.Stdout, true, "DeleteItem failed"),
 		404: func(*http.Response) os.Error { return ErrUnknownKey },
-		204: Okf,
+		204: okf,
 	})
 	return
 }
