@@ -11,6 +11,16 @@
 	Testing is fairly thorough, though patches and additional tests are always
 welcome.
 
+	By default, the test-suite will expect a local riak service on :8098 (edit
+common_test.go to modify these parameters).	It also will actively work on
+riak buckets named 'transientBucket' and 'transientMultiBucket', creating
+listing and deleting keys.
+
+	Since riak offers no 'delete bucket' functionality and discourages 'walk-keys'
+functionality, the test-suite does not always manage to clean up after itself.
+Should this happen, multiple testing runs usually resolve issues, but you
+may need to delete the key named after the appropriate test to settle the data
+if you are developing changes that break tests.
 
 ## Alternatives
 
