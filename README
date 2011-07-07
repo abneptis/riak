@@ -11,7 +11,10 @@
 	Testing is fairly thorough, though patches and additional tests are always
 welcome.
 
-	By default, the test-suite will expect a local riak service on :8098 (edit
+	By default, networking tests are disabled.
+
+	If you are a developer, please ensure you have tested the files in 'tests_network'.
+The network test-suite will expect a local riak service on :8098 (edit
 common_test.go to modify these parameters).	It also will actively work on
 riak buckets named 'transientBucket' and 'transientMultiBucket', creating
 listing and deleting keys.

@@ -189,27 +189,6 @@ func dialHTTP(hoststring string, scheme string) (cc *http.ClientConn, err os.Err
 	return
 }
 
-
-func dispatchRequest(cc *http.ClientConn, request *http.Request, rc map[int]func(*http.Response) os.Error) (err os.Error) {
-	if cc == nil {
-		cc, err = dialHTTP(request.Host, request.URL.Scheme)
-	}
-	if err != nil {
-		return
-	}
-	resp, err := cc.Do(request)
-	if err == nil {
-		if rcf, ok := rc[resp.StatusCode]; ok {
-			return rcf(resp)
-		}
-		if rcf, ok := rc[-1]; ok {
-			return rcf(resp)
-		}
-		err = os.NewError("No response handler for code")
-	}
-	return
-}
-
 func Ping(c Client, cc *http.ClientConn) (err os.Error) {
 	// note there's no /riak/ on a PING
 	req := pingRequest(c)
