@@ -30,7 +30,6 @@ func TestRiakGetBucket(t *testing.T) {
 	fatalIf(t, resp.Props["name"].(string) != TESTING_BUCKET, "Got wrong value for bucket name??: %v", resp.Props["name"])
 	fatalIf(t, resp.Props["n_val"].(float64) != 3, "Got wrong value for n_val??: %v", resp.Props["n_val"])
 
-	// t.Logf("got resp: %v", resp)
 }
 
 func TestRiakPing(t *testing.T) {
@@ -47,6 +46,9 @@ func TestRiakPingBad(t *testing.T) {
 
 func TestRiakListBuckets(t *testing.T) {
 	c := testClient(t)
+	// a key must be present to be counted
+	err := PutItem(c, TESTING_BUCKET, "TestRiakListBucket", []byte("hello world"), nil, nil, nil)
+	fatalIf(t, err != nil, "Got an error putting item: %v", err)
 	names, err := ListBuckets(c, nil)
 	fatalIf(t, err != nil, "Error listing buckets: %v", err)
 	var found bool
@@ -59,6 +61,7 @@ func TestRiakListBuckets(t *testing.T) {
 	if !found {
 		t.Logf("Didn't find testing bucket (did find %v)", names)
 	}
+	testDeleteItem(c, t, TESTING_BUCKET, "TestRiakListBucket")
 }
 
 

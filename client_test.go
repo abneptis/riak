@@ -104,3 +104,14 @@ func TestDeleteItemRequest(t *testing.T) {
 	fatalIf(t, req.URL.Path != expPath, "Unexpected path: %s", expPath)
 	fatalIf(t, req.URL.RawQuery != "", "Unexpected raw-query: %s", req.URL.RawQuery)
 }
+
+func TestGetSingleItemRequest(t *testing.T) {
+	expPath := path.Join(TESTING_RIAK.Path, "riak", TESTING_BUCKET, "TestGetSingleItemRequest")
+	c := testClient(t)
+	req := putItemRequest(c, TESTING_BUCKET, "TestGetSingleItemRequest", []byte("hello world"), nil, nil)
+	fatalIf(t, req == nil, "Got a nil request back!")
+	fatalIf(t, req.Method != "PUT", "Unexpected method: %s", req.Method)
+	fatalIf(t, req.URL.Path != expPath, "Unexpected path: %s", expPath)
+	fatalIf(t, req.URL.RawQuery != "", "Unexpected raw-query: %s", req.URL.RawQuery)
+	fatalIf(t, req.Header.Get("Content-Type") == "", "Content-type must be set: (got none)")
+}
