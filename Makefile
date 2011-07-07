@@ -5,7 +5,6 @@ GOFILES=\
 		client.go\
 
 DEPS=\
-		../event/
 
 CLEANFILES+=\
 
