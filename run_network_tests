@@ -1,0 +1,6 @@
+#!/bin/bash
+
+# If we don't clean first, a previous gotest run
+# will spoil the build of the network tests.
+gomake clean
+gotest -file tests_network/riak_bucket_test.go  -file common_test.go
