@@ -25,6 +25,8 @@ Should this happen, multiple testing runs usually resolve issues, but you
 may need to delete the key named after the appropriate test to settle the data
 if you are developing changes that break tests.
 
+	There is a clean_bucket tool that can assist you with this.
+
 ## Alternatives
 
 	GoRiak: https://code.google.com/p/goriak/ - The original go riak implementation
