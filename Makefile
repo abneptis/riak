@@ -4,6 +4,7 @@ TARG=github.com/abneptis/riak
 GOFILES=\
 		client.go\
 		dispatch_request.go\
+		props.go\
 
 DEPS=\
 

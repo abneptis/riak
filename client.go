@@ -109,7 +109,7 @@ func GetBucket(c Client, name string, getprops, getkeys bool, cc *http.ClientCon
 }
 
 
-func createBucketRequest(c Client, name string, props map[string]interface{}) (req *http.Request, err os.Error) {
+func setBucketRequest(c Client, name string, props Properties) (req *http.Request, err os.Error) {
 	hdrs := http.Header{}
 	hdrs.Set("Content-Type", "application/json")
 
@@ -148,8 +148,8 @@ func pingRequest(c Client) (req *http.Request) {
 	return
 }
 
-func CreateBucket(c Client, name string, props map[string]interface{}, cc *http.ClientConn) (err os.Error) {
-	req, err := createBucketRequest(c, name, props)
+func SetBucket(c Client, name string, props Properties, cc *http.ClientConn) (err os.Error) {
+	req, err := setBucketRequest(c, name, props)
 	if err == nil {
 		err = dispatchRequest(cc, req, map[int]func(*http.Response) os.Error{
 			204: func(*http.Response) os.Error { return nil },

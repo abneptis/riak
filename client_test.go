@@ -16,7 +16,7 @@ func TestPingRequest(t *testing.T) {
 
 func TestCreateBucketRequest(t *testing.T) {
 	c := testClient(t)
-	req, err := createBucketRequest(c, TESTING_BUCKET, nil)
+	req, err := setBucketRequest(c, TESTING_BUCKET, DefaultProperties())
 	fatalIf(t, err != nil, "Got an error creating bucket: %v", err)
 	fatalIf(t, req.Method != "PUT", "Wrong method in create bucket", req.Method)
 	fatalIf(t, req.ContentLength <= 0, "Got a bad content length: %d", req.ContentLength)
@@ -28,7 +28,8 @@ func TestCreateBucketRequest(t *testing.T) {
 
 func TestCreateMultiBucketRequest(t *testing.T) {
 	c := testClient(t)
-	req, err := createBucketRequest(c, TESTING_BUCKET, map[string]interface{}{"allow_mult": true})
+	isTrue := true
+	req, err := setBucketRequest(c, TESTING_BUCKET, Properties{AllowMulti:&isTrue})
 	fatalIf(t, err != nil, "Got an error creating multi-bucket: %v", err)
 	fatalIf(t, req.Method != "PUT", "Wrong method in create bucket", req.Method)
 	fatalIf(t, req.ContentLength <= 0, "Got a bad content length: %d", req.ContentLength)

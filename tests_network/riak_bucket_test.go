@@ -6,15 +6,15 @@ import "os"
 
 func TestCreateRiakBucketNoParams(t *testing.T) {
 	c := testClient(t)
-	err := CreateBucket(c, TESTING_BUCKET, nil, nil)
-	if err == nil {
-		t.Fatalf("Didn't get an error creating bucket without params")
+	err := SetBucket(c, TESTING_BUCKET, DefaultProperties(), nil)
+	if err != nil {
+		t.Fatalf("Got an error creating bucket with default params")
 	}
 }
 
 func TestCreateRiakBucketNval(t *testing.T) {
 	c := testClient(t)
-	err := CreateBucket(c, TESTING_BUCKET, map[string]interface{}{"n_val": 3}, nil)
+	err := SetBucket(c, TESTING_BUCKET, Properties{NVal: 3}, nil)
 	fatalIf(t, err != nil, "Got an error creating bucket: %v", err)
 }
 
@@ -45,7 +45,7 @@ func TestRiakListKeys(t *testing.T) {
 
 func TestRiakGetBucket(t *testing.T) {
 	c := testClient(t)
-	err := CreateBucket(c, TESTING_BUCKET, map[string]interface{}{"n_val": 3}, nil)
+	err := SetBucket(c, TESTING_BUCKET, DefaultProperties(), nil) 
 	fatalIf(t, err != nil, "Got an error getting bucket info: %v", err)
 
 	resp, err := GetBucket(c, TESTING_BUCKET, true, true, nil)
@@ -111,7 +111,8 @@ func testDeleteItem(c Client, t *testing.T, bucket, key string) {
 // MULTI-VALUE funcs
 func TestCreateRiakMulti(t *testing.T) {
 	c := testClient(t)
-	err := CreateBucket(c, TESTING_MULTI_BUCKET, map[string]interface{}{"allow_mult": true}, nil)
+	isTrue := true
+	err := SetBucket(c, TESTING_MULTI_BUCKET, Properties{AllowMulti: &isTrue}, nil)
 	fatalIf(t, err != nil, "Got an error creating multi-bucket: %v", err)
 }
 
