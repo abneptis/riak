@@ -51,8 +51,8 @@ func TestRiakGetBucket(t *testing.T) {
 	resp, err := GetBucket(c, TESTING_BUCKET, true, true, nil)
 	fatalIf(t, err != nil, "Got an error enumerating properties: %v", err)
 
-	fatalIf(t, resp.Props["name"].(string) != TESTING_BUCKET, "Got wrong value for bucket name??: %v", resp.Props["name"])
-	fatalIf(t, resp.Props["n_val"].(float64) != 3, "Got wrong value for n_val??: %v", resp.Props["n_val"])
+	fatalIf(t, resp.Props.Name != TESTING_BUCKET, "Got wrong value for bucket name??: %v", resp.Props.Name)
+	fatalIf(t, resp.Props.NVal != 3, "Got wrong value for n_val??: %v", resp.Props.NVal)
 
 }
 

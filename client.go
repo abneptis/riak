@@ -89,7 +89,7 @@ func getBucketRequest(c Client, name string, getprops, getkeys bool) (req *http.
 
 
 type BucketDetails struct {
-	Props map[string]interface{}
+	Props Properties
 	Keys  []string
 }
 
