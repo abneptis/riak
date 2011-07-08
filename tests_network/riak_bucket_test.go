@@ -19,6 +19,30 @@ func TestCreateRiakBucketNval(t *testing.T) {
 }
 
 
+func TestRiakListKeys(t *testing.T) {
+	c := testClient(t)
+	outch := make(chan string)
+	keys := []string{}
+	done := make(chan int)
+	go func(){
+		for i := range(outch){
+			keys = append(keys, i)
+		}
+		done <- 1
+	}()
+	err := PutItem(c, TESTING_BUCKET, "TestRiakListKeys", []byte("hello world"), nil, nil, nil)
+	fatalIf(t, err != nil, "Couldn't put a key in bucket to test: %v", err)
+	err = ListKeys(c, TESTING_BUCKET, outch, nil)
+	fatalIf(t, err != nil, "Got an error listing bucket: %v", err)
+	<- done
+	found := false
+	for i := range(keys) {
+		if keys[i] == "TestRiakListKeys" { found = true }
+	}
+	fatalIf(t, !found, "Didn't find key (got %v)", keys)
+
+}
+
 func TestRiakGetBucket(t *testing.T) {
 	c := testClient(t)
 	err := CreateBucket(c, TESTING_BUCKET, map[string]interface{}{"n_val": 3}, nil)

@@ -93,6 +93,9 @@ type BucketDetails struct {
 	Keys  []string
 }
 
+// NB: Using getkeys on a bucket with a large numer of keys will fail if you've not
+// tweaked your riak install.  See ListKeys to use the streaming interface.
+// ListKeys is generally discouraged in production (see http://wiki.basho.com/HTTP-List-Keys.html)
 func GetBucket(c Client, name string, getprops, getkeys bool, cc *http.ClientConn) (br BucketDetails, err os.Error) {
 	req := getBucketRequest(c, name, getprops, getkeys)
 	err = dispatchRequest(cc, req, map[int]func(*http.Response) os.Error{
@@ -226,6 +229,31 @@ func ListBuckets(c Client, cc *http.ClientConn) (names []string, err os.Error) {
 	return
 }
 
+// ListKeys is generally discouraged in production (see http://wiki.basho.com/HTTP-List-Keys.html)
+func ListKeys(c Client, b string, outch chan<- string, cc *http.ClientConn)(err os.Error){
+	resp, err := GetItem(c, b, "",http.Header{"Accept":[]string{"application/json"}}, 
+									http.Values{
+										"keys":[]string{"stream"},
+										"props":[]string{"false"},
+									}, cc)
+	if resp != nil && resp.StatusCode == 200 {
+		
+
+		dec := json.NewDecoder(resp.Body)
+		bi := BucketDetails{}
+		for err = dec.Decode(&bi); err == nil ; err = dec.Decode(&bi){
+			for i := range(bi.Keys){
+				outch <- bi.Keys[i]
+			}
+		}
+		if err == os.EOF { err = nil }
+	} else {
+		return debugFailf(os.Stdout, true, "Unexpected response: %s", resp.Status)(resp)
+	}
+	close(outch)
+	return
+
+}
 
 // for hdrs, only include headers listed as optional from 'http://wiki.basho.com/HTTP-Fetch-Object.html'
 func getItemRequest(c Client, bucket, key string, hdrs http.Header, parms http.Values) (req *http.Request) {
@@ -248,18 +276,22 @@ func GetItem(c Client, bucket, key string, hdrs http.Header, parms http.Values, 
 	return
 }
 
+
 // for hdrs, only include headers listed as optional from 'http://wiki.basho.com/HTTP-Fetch-Object.html'
 func getMultiItemRequest(c Client, bucket, key string, hdrs http.Header, parms http.Values) (req *http.Request) {
 	if hdrs == nil {
 		hdrs = http.Header{}
 	}
-	hdrs.Set("Accept", "multipart/mixed")
+	if hdrs.Get("Accept") == "" {
+		hdrs.Set("Accept", "multipart/mixed")
+	}
 	req = c.request("GET", c.keyPath(bucket, key), hdrs, parms)
 	return
 }
 
 
-// for hdrs, only include headers listed as optional from 'http://wiki.basho.com/HTTP-Fetch-Object.html'
+// for hdrs, see 'http://wiki.basho.com/HTTP-Fetch-Object.html'
+// NB: If no accept is set, we will choose multipart/mixed.
 func GetMultiItem(c Client, bucket, key string, hdrs http.Header, parms http.Values, respch chan<- *http.Response, cc *http.ClientConn) (err os.Error) {
 	req := getMultiItemRequest(c, bucket, key, hdrs, parms)
 	err = dispatchRequest(cc, req, map[int]func(*http.Response) os.Error{
@@ -311,7 +343,7 @@ func GetMultiItem(c Client, bucket, key string, hdrs http.Header, parms http.Val
 	return
 }
 
-// for hdrs, only include headers listed as optional from 'http://wiki.basho.com/HTTP-Fetch-Object.html'
+
 func putItemRequest(c Client, bucket, key string, body []byte, hdrs http.Header, parms http.Values) (req *http.Request) {
 	if hdrs == nil {
 		hdrs = http.Header{"Content-Type": []string{"application/binary"}}
@@ -322,7 +354,7 @@ func putItemRequest(c Client, bucket, key string, body []byte, hdrs http.Header,
 	return
 }
 
-// for hdrs, only include headers listed as optional from 'http://wiki.basho.com/HTTP-Fetch-Object.html'
+// for hdrs, you can include any header (see 'http://wiki.basho.com/HTTP-Fetch-Object.html' for riak specific headers)
 func PutItem(c Client, bucket, key string, body []byte, hdrs http.Header, parms http.Values, cc *http.ClientConn) (err os.Error) {
 	req := putItemRequest(c, bucket, key, body, hdrs, parms)
 	err = dispatchRequest(cc, req, map[int]func(*http.Response) os.Error{
